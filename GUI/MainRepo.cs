@@ -62,35 +62,34 @@ namespace CKAN
 
         private void UpdateRepo(object sender, DoWorkEventArgs e)
         {
-            try
-            {
-                KSP current_instance1 = CurrentInstance;
-                Repo.UpdateAllRepositories(RegistryManager.Instance(CurrentInstance), current_instance1, GUI.user);
-            }
-            catch (UriFormatException ex)
-            {
-                m_ErrorDialog.ShowErrorDialog(ex.Message);
-            }
-            catch (MissingCertificateKraken ex)
-            {
-                m_ErrorDialog.ShowErrorDialog(ex.ToString());
-            }
-            catch (Exception ex)
-            {
-                m_ErrorDialog.ShowErrorDialog("Failed to connect to repository. Exception: " + ex.Message);
-            }
-
-            m_User.displayYesNo = null;
+            KSP current_instance = CurrentInstance;
+            Repo.UpdateAllRepositories(RegistryManager.Instance(CurrentInstance), current_instance, GUI.user);
         }
 
         private void PostUpdateRepo(object sender, RunWorkerCompletedEventArgs e)
         {
-            UpdateModsList(repo_updated: true);
+            SetDescription("Scanning for manually installed mods");
+            CurrentInstance.ScanGameData();
+
+            if (e.Cancelled)
+            {
+                m_User.displayMessage("Install Cancelled", new object[0]);
+            }
+            else if (e.Error != null)
+            {
+                m_User.displayError("Failed to connect to repository. Exception: "+e.Error.ToString(), new object[0]);
+            }
+            else
+            {
+                UpdateModsList(repo_updated: true);
+            }
 
             HideWaitDialog(true);
-            AddStatusMessage("Repository successfully updated");
-            ShowRefreshQuestion();
 
+            if(!e.Cancelled && e.Error==null)
+                AddStatusMessage("Repository successfully updated");
+
+            ShowRefreshQuestion();
             Util.Invoke(this, SwitchEnabledState);
             Util.Invoke(this, RecreateDialogs);
         }
