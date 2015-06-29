@@ -31,7 +31,7 @@ namespace CKAN.CmdLine
             if (installedModuleToShow != null)
             {
                 // Show the installed module.
-                return ShowMod(installedModuleToShow);
+                return ShowMod(installedModuleToShow, ksp);
             }
 
             // Module was not installed, look for an exact match in the available modules,
@@ -89,7 +89,7 @@ namespace CKAN.CmdLine
                 }
             }
 
-            return ShowMod(moduleToShow);
+            return ShowMod(moduleToShow, ksp);
         }
 
         /// <summary>
@@ -97,10 +97,10 @@ namespace CKAN.CmdLine
         /// </summary>
         /// <returns>Success status.</returns>
         /// <param name="module">The module to show.</param>
-        public int ShowMod(InstalledModule module)
+        public int ShowMod(InstalledModule module, CKAN.KSP ksp)
         {
             // Display the basic info.
-            int return_value = ShowMod(module.Module);
+            int return_value = ShowMod(module.Module, ksp);
 
             // Display InstalledModule specific information.
             ICollection<string> files = module.Files as ICollection<string>;
@@ -120,7 +120,7 @@ namespace CKAN.CmdLine
         /// </summary>
         /// <returns>Success status.</returns>
         /// <param name="module">The module to show.</param>
-        public int ShowMod(Module module)
+        public int ShowMod(Module module, CKAN.KSP ksp)
         {
             #region Abstract and description
             if (!string.IsNullOrEmpty(module.@abstract))
@@ -184,7 +184,17 @@ namespace CKAN.CmdLine
                 user.RaiseMessage("\nProvides:");
                 foreach (string prov in module.ProvidesList)
                     user.RaiseMessage("- {0}", prov);
-            } 
+            }
+
+            var missingDeps = ksp.Registry.MissingDependencies((CKAN.CkanModule)module, ksp.Version());
+            if (missingDeps.Count() > 0)
+            {
+                user.RaiseMessage("\nUnsatisfied dependencies:");
+                foreach (string dep in missingDeps.Select(d => d.name))
+                    user.RaiseMessage("- {0}", dep);
+            }
+
+
             #endregion
 
             user.RaiseMessage("\nResources:");
