@@ -1,3 +1,6 @@
+.build/
+tools/
+Core/Meta.cs
 build/
 packages/
 CKAN/*/bin
@@ -15,6 +18,7 @@ ks2ckan.exe
 netkan.exe
 *.exe.config
 *.exe.mdb
+*.pdb
 .*.swp
 .fatten.out
 *.resources
